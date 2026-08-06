@@ -1,0 +1,15 @@
+node_modules/
+.pnpm-store/
+dist/
+coverage/
+.turbo/
+.expo/
+.env
+.env.*
+!.env.example
+*.log
+*.tsbuildinfo
+apps/api/src/generated/prisma/
+apps/mobile/.expo/
+apps/mobile/android/
+apps/mobile/ios/
