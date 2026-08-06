@@ -147,7 +147,17 @@ describe.skipIf(!databaseUrl || !runtimeDatabaseUrl)('PostgreSQL runtime securit
     const first = await service.submit(payload(code, tenant), tenant, randomUUID());
     const second = await service.submit(payload(code, otherTenant), otherTenant, randomUUID());
     expect(first.body.product.id).not.toBe(second.body.product.id);
-    otherBatchId = second.body.batch.id; otherSubmissionId = second.body.submissionId;
+    otherBatchId = (await owner.batch.create({ data: {
+      companyId: otherTenant.companyId,
+      storeId: otherTenant.storeId,
+      productId: second.body.product.id,
+      locationId: otherLocationId,
+      expiryDate: new Date('2099-12-30'),
+      entryDate: new Date('2099-01-01'),
+      receivedQuantity: 1,
+      currentQuantity: 1,
+    } })).id;
+    otherSubmissionId = second.body.submissionId;
   });
 
   it('distinguishes unassigned same-company stores from cross-company stores', async () => {
