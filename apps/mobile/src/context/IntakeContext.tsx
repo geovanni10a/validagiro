@@ -2,6 +2,7 @@ import * as Crypto from 'expo-crypto';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 import { SQLiteDraftRepository, type DraftRepository } from '../data/draftRepository';
+import { UUID_V4_PATTERN } from '../lib/device';
 import type { BarcodeFormat, BarcodeSource, IntakeDraft } from '../types';
 
 interface IntakeContextValue {
@@ -31,12 +32,32 @@ export function IntakeProvider({
   const [ready, setReady] = useState(false);
   const [current, setCurrent] = useState<IntakeDraft>();
   const currentRef = useRef<IntakeDraft | undefined>(undefined);
+  const deviceIdRef = useRef<string | undefined>(undefined);
   const [drafts, setDrafts] = useState<IntakeDraft[]>([]);
 
   const reload = useCallback(async () => setDrafts(await stableRepository.list()), [stableRepository]);
 
   useEffect(() => {
-    stableRepository.initialize().then(reload).finally(() => setReady(true));
+    let active = true;
+    void (async () => {
+      try {
+        await stableRepository.initialize();
+        const deviceId = await stableRepository.getOrCreateDeviceId();
+        deviceIdRef.current = deviceId;
+        const stored = await stableRepository.list();
+        for (const draft of stored) {
+          if (!draft.deviceId || !UUID_V4_PATTERN.test(draft.deviceId)) {
+            await stableRepository.save({ ...draft, deviceId });
+          }
+        }
+        if (active) await reload();
+      } catch {
+        // A próxima operação tenta novamente; a UI continua sem apagar dados locais.
+      } finally {
+        if (active) setReady(true);
+      }
+    })();
+    return () => { active = false; };
   }, [reload, stableRepository]);
 
   useEffect(() => {
@@ -54,8 +75,10 @@ export function IntakeProvider({
   ) => {
     const now = new Date().toISOString();
     const id = Crypto.randomUUID();
+    const deviceId = deviceIdRef.current ?? await stableRepository.getOrCreateDeviceId();
+    deviceIdRef.current = deviceId;
     const next: IntakeDraft = {
-      id, clientRequestId: id, barcode, barcodeFormat, barcodeSource,
+      id, clientRequestId: id, deviceId, barcode, barcodeFormat, barcodeSource,
       status: 'DRAFT', questionnaireVersion: 1, createdAt: now, updatedAt: now,
     };
     currentRef.current = next;
@@ -85,8 +108,11 @@ export function IntakeProvider({
   }, [reload, stableRepository]);
 
   const saveDraft = useCallback(async (draft: IntakeDraft) => {
-    await stableRepository.save(draft);
-    if (currentRef.current?.id === draft.id) { currentRef.current = draft; setCurrent(draft); }
+    const deviceId = draft.deviceId ?? deviceIdRef.current ?? await stableRepository.getOrCreateDeviceId();
+    deviceIdRef.current = deviceId;
+    const normalized = { ...draft, deviceId };
+    await stableRepository.save(normalized);
+    if (currentRef.current?.id === normalized.id) { currentRef.current = normalized; setCurrent(normalized); }
     await reload();
   }, [reload, stableRepository]);
 
@@ -98,7 +124,10 @@ export function IntakeProvider({
 
   const value = useMemo(() => ({
     ready, current, drafts, begin, ensureDraft, patch,
-    resume: (draft: IntakeDraft) => { currentRef.current = draft; setCurrent(draft); },
+    resume: (draft: IntakeDraft) => {
+      const normalized = draft.deviceId || !deviceIdRef.current ? draft : { ...draft, deviceId: deviceIdRef.current };
+      currentRef.current = normalized; setCurrent(normalized);
+    },
     reload, saveDraft, remove, clearCurrent: () => { currentRef.current = undefined; setCurrent(undefined); },
   }), [begin, current, drafts, ensureDraft, patch, ready, reload, remove, saveDraft]);
 

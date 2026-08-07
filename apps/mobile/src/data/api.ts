@@ -1,5 +1,6 @@
 import type { Category, IntakeDraft, Location, ProductRecord } from '../types';
 import { normalizeDecimal } from '../lib/format';
+import { isUuidV4 } from '../lib/device';
 
 const API_URL = (process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000').replace(/\/$/, '');
 const STORE_ID = process.env.EXPO_PUBLIC_STORE_ID;
@@ -68,6 +69,7 @@ export async function getLocations() {
 
 export function buildSubmission(draft: IntakeDraft) {
   if (!draft.batch || !draft.productMode) throw new Error('Cadastro incompleto.');
+  if (!isUuidV4(draft.deviceId)) throw new Error('Identificador da instalação ausente ou inválido.');
   const product = draft.productMode === 'EXISTING'
     ? {
         mode: 'EXISTING' as const,
@@ -89,7 +91,7 @@ export function buildSubmission(draft: IntakeDraft) {
   return {
     clientRequestId: draft.clientRequestId,
     questionnaireVersion: draft.questionnaireVersion,
-    device: { deviceId: 'expo-device', appVersion: '0.1.0', capturedAt: draft.createdAt },
+    device: { deviceId: draft.deviceId, appVersion: '0.1.0', capturedAt: draft.createdAt },
     barcode: {
       value: draft.barcode, format: draft.barcodeFormat,
       source: draft.barcodeSource, confirmed: true,

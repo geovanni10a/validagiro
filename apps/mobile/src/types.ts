@@ -41,6 +41,8 @@ export interface BatchFormData {
 export interface IntakeDraft {
   id: string;
   clientRequestId: string;
+  /** UUID v4 persistente da instalação. Opcional somente para migrar drafts legados. */
+  deviceId?: string;
   barcode: string;
   barcodeFormat: BarcodeFormat;
   barcodeSource: BarcodeSource;

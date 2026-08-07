@@ -4,6 +4,7 @@ import type { IntakeDraft } from '../src/types';
 
 const draft: IntakeDraft = {
   id: 'draft-id', clientRequestId: 'client-request-id', barcode: '7891234567895',
+  deviceId: '2bee39bc-d06b-4e53-9e1b-1f61eb187251',
   barcodeFormat: 'EAN_13', barcodeSource: 'CAMERA', status: 'PENDING', questionnaireVersion: 1,
   createdAt: '2026-08-06T21:10:00Z', updatedAt: '2026-08-06T21:10:00Z',
   productMode: 'EXISTING', existingProduct: { id: 'product-id', name: 'Leite', categoryId: 'category-id', unitOfMeasure: 'UNIT', salePrice: { amount: '6.49', currency: 'BRL' }, automaticPromotionEligible: false, version: 2 },

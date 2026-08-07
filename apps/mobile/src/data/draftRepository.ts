@@ -1,8 +1,11 @@
 import * as SQLite from 'expo-sqlite';
+import * as Crypto from 'expo-crypto';
 import type { DraftStatus, IntakeDraft } from '../types';
+import { UUID_V4_PATTERN } from '../lib/device';
 
 export interface DraftRepository {
   initialize(): Promise<void>;
+  getOrCreateDeviceId(): Promise<string>;
   save(draft: IntakeDraft): Promise<void>;
   get(id: string): Promise<IntakeDraft | null>;
   list(): Promise<IntakeDraft[]>;
@@ -10,6 +13,7 @@ export interface DraftRepository {
 }
 
 type DraftRow = { payload: string };
+type MetadataRow = { value: string };
 
 export class SQLiteDraftRepository implements DraftRepository {
   private database?: SQLite.SQLiteDatabase;
@@ -27,12 +31,30 @@ export class SQLiteDraftRepository implements DraftRepository {
       );
       CREATE INDEX IF NOT EXISTS intake_drafts_status_updated
         ON intake_drafts(status, updated_at DESC);
+      CREATE TABLE IF NOT EXISTS app_metadata (
+        key TEXT PRIMARY KEY NOT NULL,
+        value TEXT NOT NULL
+      );
     `);
   }
 
   private db() {
     if (!this.database) throw new Error('Repositório local não inicializado.');
     return this.database;
+  }
+
+  async getOrCreateDeviceId() {
+    const existing = await this.db().getFirstAsync<MetadataRow>(
+      `SELECT value FROM app_metadata WHERE key = 'device_id'`,
+    );
+    if (existing && UUID_V4_PATTERN.test(existing.value)) return existing.value;
+    const generated = Crypto.randomUUID();
+    await this.db().runAsync(
+      `INSERT INTO app_metadata(key, value) VALUES ('device_id', ?)
+       ON CONFLICT(key) DO UPDATE SET value = excluded.value`,
+      generated,
+    );
+    return generated;
   }
 
   async save(draft: IntakeDraft) {
@@ -70,7 +92,13 @@ export class SQLiteDraftRepository implements DraftRepository {
 
 export class MemoryDraftRepository implements DraftRepository {
   private drafts = new Map<string, IntakeDraft>();
+  private deviceId?: string;
+  constructor(deviceId?: string) { this.deviceId = deviceId; }
   async initialize() {}
+  async getOrCreateDeviceId() {
+    if (!this.deviceId) this.deviceId = Crypto.randomUUID();
+    return this.deviceId;
+  }
   async save(draft: IntakeDraft) { this.drafts.set(draft.id, structuredClone(draft)); }
   async get(id: string) { return this.drafts.has(id) ? structuredClone(this.drafts.get(id)!) : null; }
   async list() { return sortDrafts([...this.drafts.values()].map((draft) => structuredClone(draft))); }

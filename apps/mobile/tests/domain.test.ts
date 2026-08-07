@@ -8,6 +8,7 @@ import type { IntakeDraft } from '../src/types';
 const baseDraft: IntakeDraft = {
   id: '0d7026e9-df51-42e5-aa64-bdd5186b45e0',
   clientRequestId: '0d7026e9-df51-42e5-aa64-bdd5186b45e0',
+  deviceId: '2bee39bc-d06b-4e53-9e1b-1f61eb187251',
   barcode: '7891234567895', barcodeFormat: 'EAN_13', barcodeSource: 'CAMERA', status: 'PENDING',
   questionnaireVersion: 1, productMode: 'CREATE', createdAt: '2026-08-06T21:10:00Z', updatedAt: '2026-08-06T21:10:00Z',
   product: { name: 'Leite integral', brand: 'Marca', categoryId: 'category-id', categoryName: 'Leites', unitOfMeasure: 'UNIT', packageContentValue: '1,000', packageContentUnit: 'L', salePrice: '6,49', automaticPromotionEligible: 'false' },
@@ -42,6 +43,7 @@ describe('envio idempotente', () => {
   it('preserva clientRequestId e separa produto de lote', () => {
     const payload = buildSubmission(baseDraft);
     expect(payload.clientRequestId).toBe(baseDraft.clientRequestId);
+    expect(payload.device.deviceId).toBe(baseDraft.deviceId);
     expect(payload.product.mode).toBe('CREATE');
     expect(payload.batch.locationId).toBe('location-id');
     expect(payload.product.mode).toBe('CREATE');
@@ -50,5 +52,9 @@ describe('envio idempotente', () => {
   it('usa referência somente leitura para produto existente', () => {
     const draft: IntakeDraft = { ...baseDraft, product: undefined, productMode: 'EXISTING', existingProduct: { id: 'product-id', name: 'Produto', categoryId: 'category-id', unitOfMeasure: 'UNIT', salePrice: { amount: '5.00', currency: 'BRL' }, automaticPromotionEligible: false, version: 3 } };
     expect(buildSubmission(draft).product).toEqual({ mode: 'EXISTING', id: 'product-id', observedVersion: 3 });
+  });
+  it('recusa envio sem deviceId UUID v4 após a janela de migração', () => {
+    expect(() => buildSubmission({ ...baseDraft, deviceId: undefined })).toThrow('Identificador da instalação');
+    expect(() => buildSubmission({ ...baseDraft, deviceId: 'expo-device' })).toThrow('Identificador da instalação');
   });
 });
