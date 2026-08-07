@@ -1,0 +1,6 @@
+.expo/
+.expo-smoke/
+.expo-web-smoke/
+node_modules/
+coverage/
+.env
