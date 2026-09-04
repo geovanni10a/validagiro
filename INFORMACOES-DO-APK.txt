@@ -1,0 +1,16 @@
+ValidaGiro 1.0.0
+=================
+
+Arquivo: ValidaGiro-1.0.0.apk
+Pacote Android: com.geovanni10a.validagiro.offline
+Version code: 2
+Android minimo: 7.0 (API 24)
+Android alvo: 15 (API 35)
+Tamanho: 94.090.944 bytes
+SHA-256: 0901F613DDE51C24E28B19DAD48CF69156C86D37840105105D2796B1F2BA21F9
+Assinatura APK v2: valida
+Certificado SHA-256: FAC61745DC0903786FB9EDE62A962B399F7348F0BB6F899B8332667591033B9C
+
+O pacote e o certificado coincidem com o APK ValidaGiro-Teste-v0.1.1
+fornecido para reconstrução, permitindo a tentativa de instalação como
+atualização sem trocar o identificador do aplicativo.

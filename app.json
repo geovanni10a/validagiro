@@ -1,0 +1,49 @@
+{
+  "expo": {
+    "name": "ValidaGiro",
+    "slug": "validagiro-offline",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "newArchEnabled": false,
+    "userInterfaceStyle": "light",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#F6F8FB"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Permita que o ValidaGiro use a câmera para ler códigos de barras.",
+          "recordAudioAndroid": false
+        }
+      ],
+      "expo-sqlite",
+      "@react-native-community/datetimepicker",
+      "./plugins/with-local-network"
+    ],
+    "android": {
+      "package": "com.geovanni10a.validagiro.offline",
+      "versionCode": 2,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#175CD3"
+      },
+      "permissions": ["CAMERA"]
+    },
+    "ios": {
+      "bundleIdentifier": "com.geovanni10a.validagiro.offline",
+      "buildNumber": "2",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "A câmera é usada somente para ler códigos de barras.",
+        "NSAppTransportSecurity": {
+          "NSAllowsLocalNetworking": true
+        }
+      }
+    }
+  }
+}

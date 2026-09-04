@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="theme-color" content="#07101f" />
+    <title>ValidaGiro — Estoque 3D</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header>
+      <div class="brand-mark">VG</div>
+      <div><strong>ValidaGiro</strong><span>Central de estoque</span></div>
+      <div class="connection"><i></i><span id="connection-label">Conectando…</span></div>
+    </header>
+    <main>
+      <section class="viewer-panel">
+        <div class="viewer-head">
+          <div><p class="eyebrow">MAPA INTERATIVO</p><h1>Estoque 3D</h1><p>Arraste para girar, use a roda para aproximar e clique nas caixas.</p></div>
+          <button id="reset-camera">Redefinir câmera</button>
+        </div>
+        <div id="scene"><div id="scene-empty"><b>O estoque ainda está vazio</b><span>Sincronize um celular para preencher o mapa.</span></div></div>
+        <div class="legend">
+          <span><i class="long"></i>+60 dias</span><span><i class="attention"></i>31–60</span><span><i class="urgent"></i>15–30</span><span><i class="critical"></i>0–14</span><span><i class="expired"></i>Vencido</span>
+        </div>
+        <div id="tooltip" hidden></div>
+      </section>
+      <aside>
+        <div class="stats">
+          <article><span>Produtos</span><b id="stat-products">0</b></article>
+          <article><span>Lotes</span><b id="stat-batches">0</b></article>
+          <article class="danger-stat"><span>Críticos</span><b id="stat-critical">0</b></article>
+          <article><span>Unidades</span><b id="stat-units">0</b></article>
+        </div>
+        <label class="search"><span>⌕</span><input id="search" type="search" placeholder="Buscar produto, lote ou local" /></label>
+        <div class="section-title"><h2>Produtos</h2><span id="updated-at"></span></div>
+        <div id="inventory-list" class="inventory-list"></div>
+      </aside>
+    </main>
+    <script>
+      window.addEventListener('error', function (event) {
+        var label = document.getElementById('connection-label');
+        var state = document.querySelector('.connection');
+        if (label) label.textContent = 'Falha no 3D';
+        if (state) state.className = 'connection offline';
+        console.error('ValidaGiro 3D:', event.message);
+      });
+    </script>
+    <script src="/app.bundle.js"></script>
+  </body>
+</html>
